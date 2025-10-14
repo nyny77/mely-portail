@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Familles - Visio EHPAD</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📹</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #9146ff;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #9146ff;
+            margin-bottom: 20px;
+            font-size: 24px;
+            border-bottom: 3px solid #9146ff;
+            padding-bottom: 10px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #9146ff;
+        }
+
+        .btn {
+            background: #9146ff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #7c3aed;
+        }
+
+        .btn-secondary {
+            background: #2ecc71;
+        }
+
+        .btn-secondary:hover {
+            background: #27ae60;
+        }
+
+        .rdv-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .rdv-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #9146ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rdv-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .rdv-info p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .rdv-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .btn-join {
+            background: #2ecc71;
+        }
+
+        .btn-join:hover {
+            background: #27ae60;
+        }
+
+        .btn-cancel {
+            background: #e74c3c;
+        }
+
+        .btn-cancel:hover {
+            background: #c0392b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .rdv-item {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .rdv-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📹 Portail Familles</h1>
+            <p>Restez connecté avec vos proches</p>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="card">
+            <h2>🔐 Connexion</h2>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="votre.email@exemple.com">
+                </div>
+                <div class="form-group">
+                    <label for="code">Code d'accès</label>
+                    <input type="text" id="code" placeholder="Code reçu par email" maxlength="4">
+                </div>
+                <button class="btn" onclick="login()">Se connecter</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="hidden">
+            <div class="card">
+                <h2>👋 Bienvenue, <span id="userName"></span></h2>
+                <p>Résident : <strong id="residentName"></strong> - Chambre <span id="residentRoom"></span></p>
+            </div>
+
+            <div class="card">
+                <h2>📅 Vos prochains rendez-vous</h2>
+                <div id="rdvList" class="rdv-list"></div>
+            </div>
+
+            <div class="card">
+                <h2>➕ Demander un nouveau rendez-vous</h2>
+                <div class="form-group">
+                    <label>Date souhaitée</label>
+                    <input type="date" id="newRdvDate">
+                </div>
+                <div class="form-group">
+                    <label>Heure souhaitée</label>
+                    <input type="time" id="newRdvTime">
+                </div>
+                <div class="form-group">
+                    <label>Durée</label>
+                    <select id="newRdvDuration">
+                        <option value="15">15 minutes</option>
+                        <option value="30" selected>30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60">60 minutes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Message (optionnel)</label>
+                    <textarea id="newRdvMessage" rows="3"></textarea>
+                </div>
+                <button class="btn btn-secondary" onclick="requestRdv()">Envoyer la demande</button>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <button class="btn" onclick="logout()">Se déconnecter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL de l'API Railway
+        const API_URL = 'https://mely-api-production.up.railway.app/api';
+        
+        let currentUser = null;
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('code').value;
+
+            if (!email || !code) {
+                alert('❌ Veuillez remplir tous les champs');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = {
+                        famille: data.famille,
+                        resident: data.resident,
+                        rdvs: []
+                    };
+                    await showDashboard();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('❌ Erreur de connexion au serveur.');
+            }
+        }
+
+        async function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+
+            document.getElementById('userName').textContent = currentUser.famille.prenom + ' ' + currentUser.famille.nom;
+            document.getElementById('residentName').textContent = currentUser.resident.prenom + ' ' + currentUser.resident.nom;
+            document.getElementById('residentRoom').textContent = currentUser.resident.chambre;
+
+            await loadRdvs();
+        }
+
+        async function loadRdvs() {
+            const rdvList = document.getElementById('rdvList');
+            rdvList.innerHTML = '<p style="color: #666;">Chargement...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/rdv/${currentUser.famille.id}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser.rdvs = data.rdvs;
+                    rdvList.innerHTML = '';
+
+                    if (currentUser.rdvs.length === 0) {
+                        rdvList.innerHTML = '<p style="color: #666;">Aucun rendez-vous planifié</p>';
+                        return;
+                    }
+
+                    currentUser.rdvs.forEach(rdv => {
+                        const rdvItem = document.createElement('div');
+                        rdvItem.className = 'rdv-item';
+                        
+                        const date = new Date(rdv.date + 'T' + rdv.heure);
+                        const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        
+                        rdvItem.innerHTML = `
+                            <div class="rdv-info">
+                                <h3>📅 ${dateStr}</h3>
+                                <p>🕐 ${rdv.heure} - Durée : ${rdv.duree} minutes</p>
+                                <p>📊 Statut : <strong>${rdv.statut}</strong></p>
+                            </div>
+                            <div class="rdv-actions">
+                                ${rdv.lien ? `<button class="btn btn-small btn-join" onclick="joinRdv('${rdv.lien}')">🎥 Rejoindre</button>` : ''}
+                                <button class="btn btn-small btn-cancel" onclick="cancelRdv(${rdv.id})">❌ Annuler</button>
+                            </div>
+                        `;
+                        
+                        rdvList.appendChild(rdvItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                rdvList.innerHTML = '<p style="color: #e74c3c;">❌ Erreur de chargement</p>';
+            }
+        }
+
+        function joinRdv(lien) {
+            window.open(lien, '_blank');
+        }
+
+        async function cancelRdv(id) {
+            if (!confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/rdv/${id}/cancel`, { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Rendez-vous annulé.');
+                    await loadRdvs();
+                } else {
+                    alert('❌ Erreur : ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Erreur lors de l\'annulation');
+            }
+        }
+
+        async function requestRdv() {
+            const date = document.getElementById('newRdvDate').value;
+            const time = document.getElementById('newRdvTime').value;
+            const duration = document.getElementById('newRdvDuration').value;
+            const message = document.getElementById('newRdvMessage').value;
+
+            if (!date || !time) {
+                alert('❌ Veuillez remplir la date et l\'heure');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/rdv/request`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        famille_id: currentUser.famille.id,
+                        resident_id: currentUser.resident.id,
+                        date: date,
+                        time: time,
+                        duration: parseInt(duration),
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Demande envoyée !\n\nVous recevrez un email de confirmation une fois le rendez-vous validé par l\'équipe.');
+                    
+                    document.getElementById('newRdvDate').value = '';
+                    document.getElementById('newRdvTime').value = '';
+                    document.getElementById('newRdvMessage').value = '';
+
+                    await loadRdvs();
+                } else {
+                    alert('❌ Erreur : ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Erreur lors de l\'envoi de la demande');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('code').value = '';
+        }
+    </script>
+</body>
+</html>
