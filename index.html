@@ -409,8 +409,8 @@
                     const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
                     const today = new Date();
                     
-                    // Générer les créneaux pour les 4 prochaines semaines
-                    for (let i = 0; i < 28; i++) {
+                    // Générer les créneaux pour les 15 prochains jours
+                    for (let i = 0; i < 15; i++) {
                         const date = new Date(today);
                         date.setDate(today.getDate() + i);
                         const jourSemaine = (date.getDay() + 6) % 7; // Convertir Dimanche=0 en Lundi=0
