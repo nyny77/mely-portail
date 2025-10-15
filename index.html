@@ -421,26 +421,59 @@
                         
                         disposDuJour.forEach(dispo => {
                             const dateStr = date.toISOString().split('T')[0];
-                            const creneauKey = `${dateStr}_${dispo.heure_debut}`;
-                            const dejaDemande = creneauxPris.includes(creneauKey);
                             
-                            const option = document.createElement('option');
-                            option.value = JSON.stringify({
-                                date: dateStr,
-                                time: dispo.heure_debut,
-                                jour: jours[jourSemaine]
-                            });
+                            // Découper la disponibilité en créneaux de 30 minutes
+                            const [heureDebut, minDebut] = dispo.heure_debut.split(':').map(Number);
+                            const [heureFin, minFin] = dispo.heure_fin.split(':').map(Number);
                             
-                            // Afficher "⚠️ Déjà demandé" si le créneau est pris
-                            if (dejaDemande) {
-                                option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${dispo.heure_debut} à ${dispo.heure_fin} ⚠️ Déjà demandé`;
-                                option.style.color = '#e74c3c';
-                                option.style.fontWeight = 'bold';
-                            } else {
-                                option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${dispo.heure_debut} à ${dispo.heure_fin}`;
+                            let currentHeure = heureDebut;
+                            let currentMin = minDebut;
+                            
+                            while (currentHeure < heureFin || (currentHeure === heureFin && currentMin < minFin)) {
+                                // Calculer l'heure de fin du créneau (+ 30 min)
+                                let endHeure = currentHeure;
+                                let endMin = currentMin + 30;
+                                
+                                if (endMin >= 60) {
+                                    endMin -= 60;
+                                    endHeure += 1;
+                                }
+                                
+                                // Vérifier qu'on ne dépasse pas la fin de dispo
+                                if (endHeure > heureFin || (endHeure === heureFin && endMin > minFin)) {
+                                    break;
+                                }
+                                
+                                const timeStr = `${String(currentHeure).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+                                const endTimeStr = `${String(endHeure).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+                                const creneauKey = `${dateStr}_${timeStr}`;
+                                const dejaDemande = creneauxPris.includes(creneauKey);
+                                
+                                const option = document.createElement('option');
+                                option.value = JSON.stringify({
+                                    date: dateStr,
+                                    time: timeStr,
+                                    jour: jours[jourSemaine]
+                                });
+                                
+                                // Afficher "⚠️ Déjà demandé" si le créneau est pris
+                                if (dejaDemande) {
+                                    option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${timeStr} à ${endTimeStr} ⚠️ Déjà demandé`;
+                                    option.style.color = '#e74c3c';
+                                    option.style.fontWeight = 'bold';
+                                } else {
+                                    option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${timeStr} à ${endTimeStr}`;
+                                }
+                                
+                                select.appendChild(option);
+                                
+                                // Passer au créneau suivant (+ 30 min)
+                                currentMin += 30;
+                                if (currentMin >= 60) {
+                                    currentMin -= 60;
+                                    currentHeure += 1;
+                                }
                             }
-                            
-                            select.appendChild(option);
                         });
                     }
                 } else {
