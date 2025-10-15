@@ -408,6 +408,7 @@
                     
                     const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
                     const today = new Date();
+                    const creneauxPris = data.creneaux_pris || [];
                     
                     // Générer les créneaux pour les 15 prochains jours
                     for (let i = 0; i < 15; i++) {
@@ -420,13 +421,25 @@
                         
                         disposDuJour.forEach(dispo => {
                             const dateStr = date.toISOString().split('T')[0];
+                            const creneauKey = `${dateStr}_${dispo.heure_debut}`;
+                            const dejaDemande = creneauxPris.includes(creneauKey);
+                            
                             const option = document.createElement('option');
                             option.value = JSON.stringify({
                                 date: dateStr,
                                 time: dispo.heure_debut,
                                 jour: jours[jourSemaine]
                             });
-                            option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${dispo.heure_debut} à ${dispo.heure_fin}`;
+                            
+                            // Afficher "⚠️ Déjà demandé" si le créneau est pris
+                            if (dejaDemande) {
+                                option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${dispo.heure_debut} à ${dispo.heure_fin} ⚠️ Déjà demandé`;
+                                option.style.color = '#e74c3c';
+                                option.style.fontWeight = 'bold';
+                            } else {
+                                option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${dispo.heure_debut} à ${dispo.heure_fin}`;
+                            }
+                            
                             select.appendChild(option);
                         });
                     }
