@@ -223,12 +223,14 @@
             <div class="card">
                 <h2>➕ Demander un nouveau rendez-vous</h2>
                 <div class="form-group">
-                    <label>Date souhaitée</label>
-                    <input type="date" id="newRdvDate">
+                    <label>Choisissez un créneau disponible</label>
+                    <select id="creneauSelect" onchange="updateCreneauInfo()">
+                        <option value="">Chargement des créneaux...</option>
+                    </select>
                 </div>
-                <div class="form-group">
-                    <label>Heure souhaitée</label>
-                    <input type="time" id="newRdvTime">
+                <div id="creneauInfo" style="margin: 15px 0; padding: 15px; background: #f0f0f0; border-radius: 8px; display: none;">
+                    <p style="margin: 0; color: #333;"><strong>📅 Créneau sélectionné :</strong></p>
+                    <p id="creneauDetails" style="margin: 5px 0 0 0; color: #666;"></p>
                 </div>
                 <div class="form-group">
                     <label>Durée</label>
@@ -323,6 +325,7 @@
             document.getElementById('residentRoom').textContent = currentUser.resident.chambre;
 
             await loadRdvs();
+            await loadDisponibilites();
         }
 
         async function loadRdvs() {
@@ -392,16 +395,78 @@
             }
         }
 
+        async function loadDisponibilites() {
+            const select = document.getElementById('creneauSelect');
+            select.innerHTML = '<option value="">Chargement...</option>';
+
+            try {
+                const response = await fetch(`${API_URL}/disponibilites`);
+                const data = await response.json();
+
+                if (data.success && data.disponibilites.length > 0) {
+                    select.innerHTML = '<option value="">-- Sélectionnez un créneau --</option>';
+                    
+                    const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+                    const today = new Date();
+                    
+                    // Générer les créneaux pour les 4 prochaines semaines
+                    for (let i = 0; i < 28; i++) {
+                        const date = new Date(today);
+                        date.setDate(today.getDate() + i);
+                        const jourSemaine = (date.getDay() + 6) % 7; // Convertir Dimanche=0 en Lundi=0
+                        
+                        // Trouver les dispos pour ce jour
+                        const disposDuJour = data.disponibilites.filter(d => d.jour_semaine === jourSemaine);
+                        
+                        disposDuJour.forEach(dispo => {
+                            const dateStr = date.toISOString().split('T')[0];
+                            const option = document.createElement('option');
+                            option.value = JSON.stringify({
+                                date: dateStr,
+                                time: dispo.heure_debut,
+                                jour: jours[jourSemaine]
+                            });
+                            option.textContent = `${jours[jourSemaine]} ${date.toLocaleDateString('fr-FR')} - ${dispo.heure_debut} à ${dispo.heure_fin}`;
+                            select.appendChild(option);
+                        });
+                    }
+                } else {
+                    select.innerHTML = '<option value="">❌ Aucun créneau disponible</option>';
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                select.innerHTML = '<option value="">❌ Erreur de chargement</option>';
+            }
+        }
+
+        function updateCreneauInfo() {
+            const select = document.getElementById('creneauSelect');
+            const info = document.getElementById('creneauInfo');
+            const details = document.getElementById('creneauDetails');
+            
+            if (select.value) {
+                const creneau = JSON.parse(select.value);
+                const date = new Date(creneau.date);
+                details.textContent = `${creneau.jour} ${date.toLocaleDateString('fr-FR')} à ${creneau.time}`;
+                info.style.display = 'block';
+            } else {
+                info.style.display = 'none';
+            }
+        }
+
         async function requestRdv() {
-            const date = document.getElementById('newRdvDate').value;
-            const time = document.getElementById('newRdvTime').value;
+            const creneauSelect = document.getElementById('creneauSelect');
             const duration = document.getElementById('newRdvDuration').value;
             const message = document.getElementById('newRdvMessage').value;
 
-            if (!date || !time) {
-                alert('❌ Veuillez remplir la date et l\'heure');
+            if (!creneauSelect.value) {
+                alert('❌ Veuillez sélectionner un créneau');
                 return;
             }
+
+            const creneau = JSON.parse(creneauSelect.value);
+            const date = creneau.date;
+            const time = creneau.time;
 
             try {
                 const response = await fetch(`${API_URL}/rdv/request`, {
@@ -422,8 +487,8 @@
                 if (data.success) {
                     alert('✅ Demande envoyée !\n\nVous recevrez un email de confirmation une fois le rendez-vous validé par l\'équipe.');
                     
-                    document.getElementById('newRdvDate').value = '';
-                    document.getElementById('newRdvTime').value = '';
+                    document.getElementById('creneauSelect').value = '';
+                    document.getElementById('creneauInfo').style.display = 'none';
                     document.getElementById('newRdvMessage').value = '';
 
                     await loadRdvs();
