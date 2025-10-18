@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #8B6F47 0%, #A0826D 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -31,10 +31,23 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             text-align: center;
             margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
         }
 
         .header h1 {
-            color: #9146ff;
+            color: #B85C38;
             font-size: 36px;
             margin-bottom: 10px;
         }
@@ -53,10 +66,10 @@
         }
 
         .card h2 {
-            color: #9146ff;
+            color: #B85C38;
             margin-bottom: 20px;
             font-size: 24px;
-            border-bottom: 3px solid #9146ff;
+            border-bottom: 3px solid #B85C38;
             padding-bottom: 10px;
         }
 
@@ -87,11 +100,11 @@
 
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
-            border-color: #9146ff;
+            border-color: #B85C38;
         }
 
         .btn {
-            background: #9146ff;
+            background: #B85C38;
             color: white;
             padding: 15px 30px;
             border: none;
@@ -104,7 +117,7 @@
         }
 
         .btn:hover {
-            background: #7c3aed;
+            background: #9A4A2F;
         }
 
         .btn-secondary {
@@ -124,7 +137,7 @@
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
-            border-left: 5px solid #9146ff;
+            border-left: 5px solid #B85C38;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -188,8 +201,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>📹 Portail Familles</h1>
-            <p>Restez connecté avec vos proches</p>
+            <img src="https://i.imgur.com/fZFFluk.png" alt="Logo EHPAD de Crécy" class="logo">
+            <div class="header-content">
+                <h1>📹 Portail Familles</h1>
+                <p style="font-size: 20px; font-weight: 600; color: #B85C38; margin-top: 5px;">EHPAD de Crécy</p>
+                <p>Restez connecté avec vos proches</p>
+            </div>
+            <img src="https://i.imgur.com/fZFFluk.png" alt="Logo EHPAD de Crécy" class="logo">
         </div>
 
         <!-- Login Section -->
