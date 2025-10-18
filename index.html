@@ -250,15 +250,11 @@
                     <p style="margin: 0; color: #333;"><strong>📅 Créneau sélectionné :</strong></p>
                     <p id="creneauDetails" style="margin: 5px 0 0 0; color: #666;"></p>
                 </div>
-                <div class="form-group">
-                    <label>Durée</label>
-                    <select id="newRdvDuration">
-                        <option value="15">15 minutes</option>
-                        <option value="30" selected>30 minutes</option>
-                        <option value="45">45 minutes</option>
-                        <option value="60">60 minutes</option>
-                    </select>
-                </div>
+                <!-- Durée fixe à 30 minutes -->
+                <input type="hidden" id="newRdvDuration" value="30">
+                <p style="color: #666; font-size: 14px; margin: 10px 0;">
+                    ⏱️ <strong>Durée :</strong> 30 minutes (durée standard pour tous les rendez-vous)
+                </p>
                 <div class="form-group">
                     <label>Message (optionnel)</label>
                     <textarea id="newRdvMessage" rows="3"></textarea>
@@ -373,7 +369,7 @@
                         rdvItem.innerHTML = `
                             <div class="rdv-info">
                                 <h3>📅 ${dateStr}</h3>
-                                <p>🕐 ${rdv.heure} - Durée : ${rdv.duree} minutes</p>
+                                <p>🕐 ${rdv.heure} - 30 minutes</p>
                                 <p>📊 Statut : <strong>${rdv.statut}</strong></p>
                             </div>
                             <div class="rdv-actions">
