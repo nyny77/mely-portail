@@ -153,6 +153,19 @@
             background: #27ae60;
         }
 
+        .btn-link {
+            background: transparent;
+            color: #B85C38;
+            text-decoration: underline;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-link:hover {
+            background: transparent;
+            color: #9A4A2F;
+        }
+
         .rdv-list {
             display: grid;
             gap: 15px;
@@ -251,6 +264,74 @@
                     </div>
                 </div>
                 <button class="btn" onclick="login()">Se connecter</button>
+                <button class="btn btn-link" onclick="showRegisterSection()">Pas encore de compte ? S'inscrire</button>
+            </div>
+        </div>
+
+        <!-- Register Section -->
+        <div id="registerSection" class="card hidden">
+            <h2>📝 Inscription</h2>
+            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; border-radius: 5px;">
+                <p style="margin: 5px 0; color: #1976d2;"><strong>ℹ️ Information importante :</strong></p>
+                <p style="margin: 5px 0; color: #1976d2;">Votre inscription sera validée par l'équipe de l'EHPAD avant que vous puissiez demander des rendez-vous.</p>
+                <p style="margin: 5px 0; color: #1976d2;">Vous recevrez un email de confirmation une fois votre compte activé.</p>
+            </div>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="regResident">Résident concerné *</label>
+                    <select id="regResident" required>
+                        <option value="">Chargement des résidents...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="regNom">Votre nom *</label>
+                    <input type="text" id="regNom" placeholder="Nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPrenom">Votre prénom *</label>
+                    <input type="text" id="regPrenom" placeholder="Prénom" required>
+                </div>
+                <div class="form-group">
+                    <label for="regLien">Lien de parenté *</label>
+                    <select id="regLien" required>
+                        <option value="">-- Sélectionnez --</option>
+                        <option value="Fils">Fils</option>
+                        <option value="Fille">Fille</option>
+                        <option value="Conjoint(e)">Conjoint(e)</option>
+                        <option value="Petit-fils">Petit-fils</option>
+                        <option value="Petite-fille">Petite-fille</option>
+                        <option value="Frère">Frère</option>
+                        <option value="Sœur">Sœur</option>
+                        <option value="Neveu">Neveu</option>
+                        <option value="Nièce">Nièce</option>
+                        <option value="Ami(e)">Ami(e)</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Votre email *</label>
+                    <input type="email" id="regEmail" placeholder="votre.email@exemple.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="regTelephone">Votre téléphone</label>
+                    <input type="tel" id="regTelephone" placeholder="06 12 34 56 78">
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Créez votre mot de passe *</label>
+                    <div class="password-container">
+                        <input type="password" id="regPassword" placeholder="Minimum 6 caractères" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regPasswordConfirm">Confirmez votre mot de passe *</label>
+                    <div class="password-container">
+                        <input type="password" id="regPasswordConfirm" placeholder="Retapez votre mot de passe" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('regPasswordConfirm')">👁️</button>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="register()">S'inscrire</button>
+                <button class="btn btn-link" onclick="showLoginSection()">Déjà un compte ? Se connecter</button>
             </div>
         </div>
 
@@ -302,9 +383,112 @@
         
         let currentUser = null;
 
-        function togglePassword() {
-            const passwordInput = document.getElementById('code');
-            const toggleButton = document.querySelector('.toggle-password');
+        // Charger les résidents au démarrage
+        window.addEventListener('DOMContentLoaded', loadResidents);
+
+        async function loadResidents() {
+            const select = document.getElementById('regResident');
+            try {
+                const response = await fetch(`${API_URL}/residents`);
+                const data = await response.json();
+
+                if (data.success && data.residents.length > 0) {
+                    select.innerHTML = '<option value="">-- Sélectionnez un résident --</option>';
+                    data.residents.forEach(resident => {
+                        const option = document.createElement('option');
+                        option.value = resident.id;
+                        option.textContent = `${resident.prenom} ${resident.nom} - Chambre ${resident.chambre || 'N/A'}`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">Aucun résident disponible</option>';
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                select.innerHTML = '<option value="">Erreur de chargement</option>';
+            }
+        }
+
+        function showRegisterSection() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.remove('hidden');
+        }
+
+        function showLoginSection() {
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+        }
+
+        async function register() {
+            const residentId = document.getElementById('regResident').value;
+            const nom = document.getElementById('regNom').value.trim();
+            const prenom = document.getElementById('regPrenom').value.trim();
+            const lien = document.getElementById('regLien').value;
+            const email = document.getElementById('regEmail').value.trim();
+            const telephone = document.getElementById('regTelephone').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+
+            // Validation
+            if (!residentId || !nom || !prenom || !lien || !email || !password) {
+                alert('❌ Veuillez remplir tous les champs obligatoires (*)');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('❌ Le mot de passe doit contenir au moins 6 caractères');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                alert('❌ Les mots de passe ne correspondent pas');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resident_id: parseInt(residentId),
+                        nom,
+                        prenom,
+                        lien_parente: lien,
+                        email,
+                        telephone,
+                        mot_de_passe: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Inscription réussie !\n\nVotre demande a été envoyée à l\'équipe de l\'EHPAD.\nVous recevrez un email de confirmation une fois votre compte validé.');
+                    
+                    // Réinitialiser le formulaire
+                    document.getElementById('regNom').value = '';
+                    document.getElementById('regPrenom').value = '';
+                    document.getElementById('regLien').value = '';
+                    document.getElementById('regEmail').value = '';
+                    document.getElementById('regTelephone').value = '';
+                    document.getElementById('regPassword').value = '';
+                    document.getElementById('regPasswordConfirm').value = '';
+                    document.getElementById('regResident').value = '';
+                    
+                    // Retour à la page de connexion
+                    showLoginSection();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('❌ Erreur lors de l\'inscription');
+            }
+        }
+
+        function togglePassword(inputId = 'code') {
+            const passwordInput = document.getElementById(inputId);
+            const toggleButton = passwordInput.nextElementSibling;
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -373,6 +557,7 @@
 
         async function showDashboard() {
             document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.add('hidden');
             document.getElementById('dashboardSection').classList.remove('hidden');
 
             document.getElementById('userName').textContent = currentUser.famille.prenom + ' ' + currentUser.famille.nom;
