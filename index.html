@@ -278,10 +278,12 @@
             </div>
             <div class="login-form">
                 <div class="form-group">
-                    <label for="regResident">Résident concerné *</label>
-                    <select id="regResident" required>
-                        <option value="">Chargement des résidents...</option>
-                    </select>
+                    <label for="regCodeAcces">Code d'accès résident *</label>
+                    <input type="text" id="regCodeAcces" placeholder="Ex: BEGERAALI-6097" required style="text-transform: uppercase;">
+                    <small style="color: #666; font-size: 12px;">Ce code vous a été communiqué par l'EHPAD</small>
+                </div>
+                <div id="residentInfo" style="display: none; padding: 10px; background: #e8f5e9; border-radius: 5px; margin-bottom: 15px;">
+                    <p style="margin: 0; color: #2e7d32;">✅ Résident identifié : <strong id="residentName"></strong></p>
                 </div>
                 <div class="form-group">
                     <label for="regNom">Votre nom *</label>
@@ -379,7 +381,7 @@
 
     <script>
         // URL de l'API via Render (URL fixe)
-        const API_URL = 'https://mely-api-1.onrender.com/api';
+        const API_URL = 'https://voters-gay-showing-properties.trycloudflare.com/api';
         
         let currentUser = null;
 
@@ -419,8 +421,10 @@
             document.getElementById('loginSection').classList.remove('hidden');
         }
 
+        let verifiedResidentId = null;
+
         async function register() {
-            const residentId = document.getElementById('regResident').value;
+            const codeAcces = document.getElementById('regCodeAcces').value.trim().toUpperCase();
             const nom = document.getElementById('regNom').value.trim();
             const prenom = document.getElementById('regPrenom').value.trim();
             const lien = document.getElementById('regLien').value;
@@ -429,8 +433,36 @@
             const password = document.getElementById('regPassword').value;
             const passwordConfirm = document.getElementById('regPasswordConfirm').value;
 
+            // Vérifier le code d'accès d'abord
+            if (!codeAcces) {
+                alert('❌ Veuillez entrer votre code d\'accès');
+                return;
+            }
+
+            // Vérifier le code via l'API
+            try {
+                const verifyResponse = await fetch(`${API_URL}/residents/verify-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: codeAcces })
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (!verifyData.success) {
+                    alert('❌ Code d\'accès invalide. Veuillez vérifier votre code.');
+                    return;
+                }
+
+                verifiedResidentId = verifyData.resident.id;
+            } catch (error) {
+                console.error('Erreur vérification code:', error);
+                alert('❌ Erreur lors de la vérification du code');
+                return;
+            }
+
             // Validation
-            if (!residentId || !nom || !prenom || !lien || !email || !password) {
+            if (!nom || !prenom || !lien || !email || !password) {
                 alert('❌ Veuillez remplir tous les champs obligatoires (*)');
                 return;
             }
@@ -450,7 +482,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        resident_id: parseInt(residentId),
+                        resident_id: verifiedResidentId,
                         nom,
                         prenom,
                         lien_parente: lien,
@@ -473,7 +505,8 @@
                     document.getElementById('regTelephone').value = '';
                     document.getElementById('regPassword').value = '';
                     document.getElementById('regPasswordConfirm').value = '';
-                    document.getElementById('regResident').value = '';
+                    document.getElementById('regCodeAcces').value = '';
+                    document.getElementById('residentInfo').style.display = 'none';
                     
                     // Retour à la page de connexion
                     showLoginSection();
@@ -793,6 +826,45 @@
             document.getElementById('email').value = '';
             document.getElementById('code').value = '';
         }
+
+        // Vérification en temps réel du code d'accès
+        let verifyTimeout = null;
+        document.getElementById('regCodeAcces')?.addEventListener('input', function(e) {
+            const code = e.target.value.trim().toUpperCase();
+            const residentInfo = document.getElementById('residentInfo');
+            const residentName = document.getElementById('residentName');
+            
+            // Réinitialiser le timeout
+            clearTimeout(verifyTimeout);
+            
+            if (code.length < 5) {
+                residentInfo.style.display = 'none';
+                return;
+            }
+            
+            // Attendre 500ms après la dernière frappe
+            verifyTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/residents/verify-code`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        residentName.textContent = `${data.resident.prenom} ${data.resident.nom} - Chambre ${data.resident.chambre}`;
+                        residentInfo.style.display = 'block';
+                    } else {
+                        residentInfo.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Erreur vérification:', error);
+                    residentInfo.style.display = 'none';
+                }
+            }, 500);
+        });
     </script>
 </body>
 </html>
